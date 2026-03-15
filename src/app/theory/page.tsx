@@ -15,6 +15,7 @@ import {
 
 // ── 侧边导航 ─────────────────────────────────────────────────
 const SECTIONS = [
+  { id: "quiz",         icon: "🎮", label: "互动练习" },
   { id: "chords",       icon: "🎯", label: "和弦代号" },
   { id: "intervals",    icon: "📏", label: "音程" },
   { id: "modes",        icon: "🌈", label: "七种调式" },
@@ -33,6 +34,254 @@ function Tag({ children, color = "bg-[#F0EDE8] text-[#57534E]" }: { children: st
     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>
       {children}
     </span>
+  );
+}
+
+// ── 互动练习 ──────────────────────────────────────────────────
+type QuizTopic = "chords" | "intervals" | "modes";
+
+interface QuizQ {
+  q: string;
+  answer: string;
+  options: string[];
+  explanation: string;
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function pickWrong<T>(pool: T[], correct: T, count: number): T[] {
+  return shuffle(pool.filter((x) => x !== correct)).slice(0, count);
+}
+
+function generateChordQs(): QuizQ[] {
+  const qs: QuizQ[] = [];
+  for (const e of shuffle(CHORD_SYMBOLS).slice(0, 5)) {
+    const opts = shuffle([e.nameCN, ...pickWrong(CHORD_SYMBOLS.map((c) => c.nameCN), e.nameCN, 3)]);
+    qs.push({ q: `C${e.symbol || "（无后缀）"} 是什么和弦？`, answer: e.nameCN, options: opts, explanation: `C${e.symbol} = ${e.nameCN}，公式：${e.formula}，组成音：${e.notes}` });
+  }
+  for (const e of shuffle(CHORD_SYMBOLS).slice(0, 5)) {
+    const opts = shuffle([e.nameCN, ...pickWrong(CHORD_SYMBOLS.map((c) => c.nameCN), e.nameCN, 3)]);
+    qs.push({ q: `公式 "${e.formula}" 是哪种和弦？`, answer: e.nameCN, options: opts, explanation: `${e.nameCN}（${e.name}）公式 ${e.formula}，例：${e.example}（${e.notes}）` });
+  }
+  return shuffle(qs).slice(0, 10);
+}
+
+function generateIntervalQs(): QuizQ[] {
+  const qs: QuizQ[] = [];
+  for (const iv of shuffle(INTERVALS).slice(0, 7)) {
+    const opts = shuffle([iv.nameCN, ...pickWrong(INTERVALS.map((i) => i.nameCN), iv.nameCN, 3)]);
+    qs.push({ q: `${iv.semitones} 个半音 = 什么音程？`, answer: iv.nameCN, options: opts, explanation: `${iv.nameCN}（${iv.abbr}）= ${iv.semitones} 半音，${iv.example}，${iv.feel}` });
+  }
+  for (const iv of shuffle(INTERVALS).slice(0, 3)) {
+    const opts = shuffle([iv.nameCN, ...pickWrong(INTERVALS.map((i) => i.nameCN), iv.nameCN, 3)]);
+    qs.push({ q: `"${iv.feel}" 是哪个音程的特征？`, answer: iv.nameCN, options: opts, explanation: `${iv.nameCN}（${iv.abbr}）的音色：${iv.feel}，例：${iv.example}` });
+  }
+  return shuffle(qs).slice(0, 10);
+}
+
+function generateModeQs(): QuizQ[] {
+  const qs: QuizQ[] = [];
+  for (const m of shuffle(MODES).slice(0, 4)) {
+    const opts = shuffle([m.name, ...pickWrong(MODES.map((x) => x.name), m.name, 3)]);
+    qs.push({ q: `第 ${m.degree} 号调式叫什么？`, answer: m.name, options: opts, explanation: `第${m.degree}号调式 ${m.name}（${m.nameCN}），主和弦：${m.chordType}，${m.mood}` });
+  }
+  for (const m of shuffle(MODES).slice(0, 3)) {
+    const opts = shuffle([m.chordType, ...pickWrong(MODES.map((x) => x.chordType), m.chordType, 3)]);
+    qs.push({ q: `${m.name} 调式的主和弦类型是？`, answer: m.chordType, options: opts, explanation: `${m.name}（${m.nameCN}）主和弦 ${m.chordType}，${m.mood}` });
+  }
+  for (const m of shuffle(MODES).slice(0, 3)) {
+    const opts = shuffle([m.nameCN, ...pickWrong(MODES.map((x) => x.nameCN), m.nameCN, 3)]);
+    qs.push({ q: `"${m.mood}" 描述的是哪个调式？`, answer: m.nameCN, options: opts, explanation: `${m.name} = ${m.nameCN}，${m.mood}，常见于：${m.example}` });
+  }
+  return shuffle(qs).slice(0, 10);
+}
+
+const TOPIC_META: Record<QuizTopic, { label: string; icon: string; color: string; bg: string; generate: () => QuizQ[] }> = {
+  chords:    { label: "和弦代号", icon: "🎯", color: "text-sky-600",    bg: "bg-sky-50 border-sky-200",    generate: generateChordQs },
+  intervals: { label: "音程",     icon: "📏", color: "text-violet-600", bg: "bg-violet-50 border-violet-200", generate: generateIntervalQs },
+  modes:     { label: "七种调式", icon: "🌈", color: "text-amber-600",  bg: "bg-amber-50 border-amber-200",  generate: generateModeQs },
+};
+
+function QuizSection() {
+  const [topic, setTopic] = useState<QuizTopic | null>(null);
+  const [questions, setQuestions] = useState<QuizQ[]>([]);
+  const [idx, setIdx] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(0);
+  const [wrongs, setWrongs] = useState<QuizQ[]>([]);
+  const [done, setDone] = useState(false);
+  const [showWrongs, setShowWrongs] = useState(false);
+
+  const start = (t: QuizTopic) => {
+    setTopic(t);
+    setQuestions(TOPIC_META[t].generate());
+    setIdx(0); setSelected(null); setScore(0);
+    setStreak(0); setMaxStreak(0); setWrongs([]); setDone(false); setShowWrongs(false);
+  };
+
+  const pick = (opt: string) => {
+    if (selected) return;
+    setSelected(opt);
+    const q = questions[idx];
+    if (opt === q.answer) {
+      setScore((s) => s + 1);
+      setStreak((s) => { const n = s + 1; setMaxStreak((m) => Math.max(m, n)); return n; });
+    } else {
+      setStreak(0);
+      setWrongs((w) => [...w, q]);
+    }
+  };
+
+  const next = () => {
+    if (idx + 1 >= questions.length) { setDone(true); }
+    else { setIdx((i) => i + 1); setSelected(null); }
+  };
+
+  const q = questions[idx];
+  const meta = topic ? TOPIC_META[topic] : null;
+
+  // ── 主题选择 ──
+  if (!topic) return (
+    <section id="quiz" className="mb-2">
+      <SectionHeader icon="🎮" title="互动练习" subtitle="选择一个主题，用测验巩固记忆——每题都有详解" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {(Object.entries(TOPIC_META) as [QuizTopic, typeof TOPIC_META[QuizTopic]][]).map(([key, m]) => (
+          <button key={key} onClick={() => start(key)}
+            className="group rounded-2xl border-2 border-[#E5DFD6] bg-white hover:border-[#F97316]/60 hover:shadow-md transition-all p-6 text-left">
+            <div className="text-4xl mb-3">{m.icon}</div>
+            <h3 className={`font-bold text-lg mb-1 font-[family-name:var(--font-space-grotesk)] ${m.color}`}>{m.label}</h3>
+            <p className="text-sm text-[#78716C]">10 题 · 多选一 · 含详解</p>
+            <div className="mt-4 flex items-center gap-1 text-sm font-medium text-[#F97316] opacity-0 group-hover:opacity-100 transition-opacity">
+              开始练习 →
+            </div>
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-[#78716C] mt-4 text-center">每次练习题目随机生成，练完可再刷一遍</p>
+    </section>
+  );
+
+  // ── 结束页 ──
+  if (done) {
+    const pct = Math.round((score / questions.length) * 100);
+    const grade = pct >= 90 ? { label: "满分！", emoji: "🏆", color: "text-amber-600" }
+      : pct >= 70 ? { label: "不错！", emoji: "🎸", color: "text-sky-600" }
+      : { label: "继续加油", emoji: "💪", color: "text-[#57534E]" };
+    return (
+      <section id="quiz">
+        <SectionHeader icon="🎮" title="互动练习" subtitle="选择一个主题，用测验巩固记忆——每题都有详解" />
+        <div className="bg-white rounded-2xl border border-[#E5DFD6] p-8 text-center">
+          <div className="text-5xl mb-3">{grade.emoji}</div>
+          <p className={`text-2xl font-bold mb-1 font-[family-name:var(--font-space-grotesk)] ${grade.color}`}>{grade.label}</p>
+          <p className="text-4xl font-bold text-[#1C1917] my-2">{score} / {questions.length}</p>
+          <p className="text-[#78716C] mb-2">正确率 {pct}%　·　最高连击 {maxStreak} 🔥</p>
+
+          {wrongs.length > 0 && (
+            <div className="mt-6 text-left">
+              <button onClick={() => setShowWrongs(!showWrongs)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 font-medium text-sm">
+                <span>📝 错题回顾（{wrongs.length} 题）</span>
+                <span>{showWrongs ? "▲" : "▼"}</span>
+              </button>
+              {showWrongs && (
+                <div className="mt-2 space-y-3">
+                  {wrongs.map((wq, i) => (
+                    <div key={i} className="bg-rose-50 border border-rose-200 rounded-xl p-4">
+                      <p className="text-sm font-medium text-[#1C1917] mb-1">❓ {wq.q}</p>
+                      <p className="text-sm text-emerald-700 font-semibold mb-1">✅ {wq.answer}</p>
+                      <p className="text-xs text-[#78716C]">{wq.explanation}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-3 mt-6 justify-center flex-wrap">
+            <button onClick={() => start(topic!)}
+              className="px-6 py-2.5 bg-[#F97316] text-white rounded-xl font-semibold hover:bg-[#EA6B0A] transition-colors">
+              再来一遍 🔄
+            </button>
+            <button onClick={() => setTopic(null)}
+              className="px-6 py-2.5 bg-white border border-[#E5DFD6] text-[#57534E] rounded-xl font-semibold hover:border-[#C8C2BA] transition-colors">
+              换个主题
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ── 答题 ──
+  const isCorrect = selected === q.answer;
+  const progress = ((idx) / questions.length) * 100;
+
+  return (
+    <section id="quiz">
+      <SectionHeader icon="🎮" title="互动练习" subtitle="选择一个主题，用测验巩固记忆——每题都有详解" />
+      <div className="bg-white rounded-2xl border border-[#E5DFD6] overflow-hidden">
+        {/* 顶部状态栏 */}
+        <div className="px-5 py-3 bg-[#F0EDE8] border-b border-[#E5DFD6] flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className={`font-bold text-sm ${meta!.color}`}>{meta!.icon} {meta!.label}</span>
+            <span className="text-xs text-[#78716C]">{idx + 1} / {questions.length}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            {streak >= 2 && <span className="text-sm font-bold text-orange-500">🔥 {streak} 连击</span>}
+            <span className="text-sm font-semibold text-[#1C1917]">✅ {score}</span>
+            <button onClick={() => setTopic(null)} className="text-xs text-[#78716C] hover:text-[#57534E]">退出</button>
+          </div>
+        </div>
+        {/* 进度条 */}
+        <div className="h-1 bg-[#E5DFD6]">
+          <div className="h-1 bg-[#F97316] transition-all duration-500" style={{ width: `${progress}%` }} />
+        </div>
+
+        <div className="p-6">
+          {/* 题目 */}
+          <p className="text-lg font-semibold text-[#1C1917] mb-6 leading-snug font-[family-name:var(--font-space-grotesk)]">{q.q}</p>
+
+          {/* 选项 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+            {q.options.map((opt) => {
+              const isThis = selected === opt;
+              const correct = opt === q.answer;
+              let cls = "border-2 border-[#E5DFD6] bg-white text-[#1C1917] hover:border-[#F97316]/60";
+              if (selected) {
+                if (correct) cls = "border-2 border-emerald-400 bg-emerald-50 text-emerald-800 font-semibold";
+                else if (isThis) cls = "border-2 border-rose-400 bg-rose-50 text-rose-700 line-through";
+                else cls = "border-2 border-[#E5DFD6] bg-white text-[#78716C] opacity-50";
+              }
+              return (
+                <button key={opt} onClick={() => pick(opt)} disabled={!!selected}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all ${cls}`}>
+                  {correct && selected ? "✅ " : isThis && selected ? "❌ " : ""}{opt}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 详解 */}
+          {selected && (
+            <div className={`rounded-xl p-4 mb-5 border text-sm ${isCorrect ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800"}`}>
+              <p className="font-semibold mb-1">{isCorrect ? "🎉 答对了！" : "💡 解析"}</p>
+              <p className="text-[#57534E]">{q.explanation}</p>
+            </div>
+          )}
+
+          {selected && (
+            <button onClick={next}
+              className="w-full py-3 bg-[#F97316] text-white rounded-xl font-semibold hover:bg-[#EA6B0A] transition-colors">
+              {idx + 1 >= questions.length ? "查看结果 🏁" : "下一题 →"}
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -688,6 +937,7 @@ export default function TheoryPage() {
               ))}
             </div>
 
+            <QuizSection />
             <ChordSymbolsSection />
             <IntervalsSection />
             <ModesSection />
