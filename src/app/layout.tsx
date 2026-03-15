@@ -23,6 +23,19 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "GuitarAI · 吉他学习助手",
   description: "AI 六线谱识别与分析",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "GuitarAI",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
