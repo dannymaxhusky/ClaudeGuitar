@@ -643,7 +643,7 @@ export default function TheoryPage() {
       <AppHeader title="乐理知识库" subtitle="基于 NiceChord 好和弦 · 官大为（Wiwi）著" />
 
       <div className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto px-4 md:px-10 py-8 flex gap-6">
+        <div className="max-w-6xl mx-auto px-4 lg:px-10 py-8 flex gap-6">
           {/* 侧边导航 */}
           <aside className="hidden lg:block w-48 flex-shrink-0">
             <div className="sticky top-8 bg-white rounded-xl border border-[#E5DFD6] overflow-hidden">

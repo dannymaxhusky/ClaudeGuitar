@@ -8,7 +8,7 @@ export default function AppBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#141414] border-t border-[#1E1E1E] flex z-50">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#141414] border-t border-[#1E1E1E] flex z-50">
       {NAV_ITEMS.map((item) => {
         const active = pathname === item.href;
         return (

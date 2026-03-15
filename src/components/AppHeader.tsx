@@ -9,7 +9,7 @@ interface AppHeaderProps {
 
 export default function AppHeader({ title, subtitle, extra }: AppHeaderProps) {
   return (
-    <header className="h-[72px] flex items-center justify-between px-4 md:px-10 border-b border-[#E5DFD6] shrink-0 bg-white">
+    <header className="h-[72px] flex items-center justify-between px-4 lg:px-10 border-b border-[#E5DFD6] shrink-0 bg-white">
       <div>
         <h1 className="text-xl font-bold text-[#1C1917] tracking-tight font-[family-name:var(--font-space-grotesk)]">
           {title}

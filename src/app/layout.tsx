@@ -51,7 +51,7 @@ export default function RootLayout({
         <div className="flex h-screen overflow-hidden bg-[#F5F2ED]">
           <AppSidebar />
           <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-            <div className="flex-1 overflow-hidden flex flex-col pb-16 md:pb-0">
+            <div className="flex-1 overflow-hidden flex flex-col pb-16 lg:pb-0">
               {children}
             </div>
             <AppBottomNav />

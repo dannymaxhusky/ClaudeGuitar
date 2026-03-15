@@ -221,7 +221,7 @@ export default function ScalesPage() {
       {/* Header */}
       <AppHeader title="音阶练习器" subtitle="基于《吉他新思维》第6–14章 · 指板可视化" />
 
-      <main className="flex-1 overflow-auto px-4 md:px-10 py-8 space-y-6">
+      <main className="flex-1 overflow-auto px-4 lg:px-10 py-8 space-y-6">
         {/* ── Selectors ── */}
         <div className="bg-white rounded-xl border border-[#E5DFD6] p-4 space-y-4">
           {/* Root */}

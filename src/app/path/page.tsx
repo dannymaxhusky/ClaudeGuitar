@@ -46,7 +46,7 @@ export default function PathPage() {
       {/* Header */}
       <AppHeader title="学习路径" subtitle="《吉他新思维》14章系统课程" />
 
-      <main className="flex-1 overflow-auto px-4 md:px-10 py-8 space-y-6">
+      <main className="flex-1 overflow-auto px-4 lg:px-10 py-8 space-y-6">
         {/* Progress overview */}
         <div className="bg-white rounded-xl border border-[#E5DFD6] p-5">
           <div className="flex items-center justify-between mb-3">

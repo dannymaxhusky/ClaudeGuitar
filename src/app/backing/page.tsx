@@ -139,7 +139,7 @@ export default function BackingPage() {
       {/* Header */}
       <AppHeader title="伴奏练习中心" subtitle="上传伴奏音轨，配合音阶/和弦练习即兴" />
 
-      <main className="flex-1 overflow-auto px-4 md:px-10 py-8 space-y-6">
+      <main className="flex-1 overflow-auto px-4 lg:px-10 py-8 space-y-6">
         {/* Player */}
         {currentTrack && (
           <div className="bg-[#F0EDE8] rounded-xl p-5 shadow-lg text-[#1C1917]">

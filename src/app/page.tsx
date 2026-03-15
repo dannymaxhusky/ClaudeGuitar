@@ -161,7 +161,7 @@ export default function Home() {
         extra={<SongLibrary onLoad={(a) => { setAnalysis(a); setPages([]); setError(null); }} />}
       />
 
-      <main className="flex-1 overflow-auto px-4 md:px-10 py-8 space-y-6">
+      <main className="flex-1 overflow-auto px-4 lg:px-10 py-8 space-y-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#57534E] font-[family-name:var(--font-space-grotesk)]">上传六线谱</h2>

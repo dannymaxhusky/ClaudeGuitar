@@ -298,7 +298,7 @@ export default function CAGEDPage() {
       {/* Header */}
       <AppHeader title="CAGED 和弦指型系统" subtitle="基于《吉他新思维》第5章 · 五种指型全覆盖指板" />
 
-      <main className="flex-1 overflow-auto px-4 md:px-10 py-8 space-y-8">
+      <main className="flex-1 overflow-auto px-4 lg:px-10 py-8 space-y-8">
 
         {/* 选择控件 */}
         <div className="bg-white rounded-2xl border border-[#E5DFD6] p-6">
