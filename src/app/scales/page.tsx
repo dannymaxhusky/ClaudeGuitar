@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AppHeader from "@/components/AppHeader";
+import { playFretboardNote } from "@/utils/audio";
 import {
   SCALES,
   SCALE_CATEGORIES,
@@ -176,7 +177,14 @@ function Fretboard({ rootIdx, scale, labelMode }: FretboardProps) {
             const dotY = sy(s);
 
             return (
-              <g key={`${s}-${f}`}>
+              <g
+                key={`${s}-${f}`}
+                onClick={() => playFretboardNote(s, f)}
+                className="cursor-pointer"
+                style={{ filter: "drop-shadow(0 0 0 transparent)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.2)")}
+                onMouseLeave={(e) => (e.currentTarget.style.filter = "")}
+              >
                 <circle cx={dotX} cy={dotY} r={DOT_R} fill={color} />
                 <text
                   x={dotX}
@@ -187,6 +195,7 @@ function Fretboard({ rootIdx, scale, labelMode }: FretboardProps) {
                   fontWeight={interval === 0 ? "bold" : "normal"}
                   fill="white"
                   fontFamily="system-ui, sans-serif"
+                  style={{ pointerEvents: "none" }}
                 >
                   {noteLabel}
                 </text>

@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import AppHeader from "@/components/AppHeader";
+import PlayButton from "@/components/PlayButton";
+import { playGuitarFrets } from "@/utils/audio";
 import {
   CHORD_TYPES,
   ROOTS,
@@ -51,9 +53,12 @@ function FretboardDiagram({ shape, rootNote, accentColor, isSelected, onClick }:
   const barreFret = shape.barre ? shape.barre.fret + semitones : null;
 
   return (
-    <button
+    <div
       onClick={onClick}
-      className={`group relative rounded-2xl p-3 transition-all border-2 ${
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
+      className={`group relative rounded-2xl p-3 transition-all border-2 cursor-pointer ${
         isSelected
           ? "border-current shadow-lg scale-[1.03] bg-white"
           : "border-[#E5DFD6] bg-white hover:border-[#C8C2BA]"
@@ -154,7 +159,16 @@ function FretboardDiagram({ shape, rootNote, accentColor, isSelected, onClick }:
           </text>
         ))}
       </svg>
-    </button>
+
+      {/* 播放按钮 */}
+      <div className="flex justify-center mt-2">
+        <PlayButton
+          size="sm"
+          title={`播放 ${rootNote} ${shape.shape}型和弦`}
+          onPlay={() => playGuitarFrets(actualFrets)}
+        />
+      </div>
+    </div>
   );
 }
 

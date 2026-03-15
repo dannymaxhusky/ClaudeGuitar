@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import AppHeader from "@/components/AppHeader";
+import PlayButton from "@/components/PlayButton";
+import { playChordNotes, playInterval, playChordName } from "@/utils/audio";
 import {
   CHORD_SYMBOLS,
   INTERVALS,
@@ -247,7 +249,7 @@ function QuizSection() {
 
           {/* 选项 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-            {q.options.map((opt) => {
+            {q.options.map((opt, oi) => {
               const isThis = selected === opt;
               const correct = opt === q.answer;
               let cls = "border-2 border-[#E5DFD6] bg-white text-[#1C1917] hover:border-[#F97316]/60";
@@ -257,7 +259,7 @@ function QuizSection() {
                 else cls = "border-2 border-[#E5DFD6] bg-white text-[#78716C] opacity-50";
               }
               return (
-                <button key={opt} onClick={() => pick(opt)} disabled={!!selected}
+                <button key={oi} onClick={() => pick(opt)} disabled={!!selected}
                   className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all ${cls}`}>
                   {correct && selected ? "✅ " : isThis && selected ? "❌ " : ""}{opt}
                 </button>
@@ -346,7 +348,15 @@ function ChordSymbolsSection() {
                 <td className="px-4 py-3 font-medium text-[#1C1917]">{entry.nameCN}</td>
                 <td className="px-4 py-3 text-[#78716C] hidden sm:table-cell">{entry.name}</td>
                 <td className="px-4 py-3 font-mono text-[#F97316] text-xs">{entry.formula}</td>
-                <td className="px-4 py-3 font-mono font-bold text-[#1C1917]">{entry.example}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-[#1C1917]">{entry.example}</span>
+                    <PlayButton
+                      onPlay={() => playChordNotes(entry.notes.split(" "))}
+                      title={`播放 ${entry.example}`}
+                    />
+                  </div>
+                </td>
                 <td className="px-4 py-3 font-mono text-[#78716C] text-xs hidden md:table-cell">{entry.notes}</td>
               </tr>
             ))}
@@ -378,7 +388,10 @@ function IntervalsSection() {
       <SectionHeader icon="📏" title="音程一览" subtitle="基于 NiceChord 第2章：一次搞懂音程名称" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {INTERVALS.map((iv) => (
+        {INTERVALS.map((iv) => {
+          // Parse "C → E" into ["C", "E"]
+          const [n1, n2] = iv.example.replace(/\s/g, "").split("→");
+          return (
           <div
             key={iv.semitones}
             className="bg-white border border-[#E5DFD6] rounded-xl p-4 hover:border-[#F97316]/40 transition-all"
@@ -388,16 +401,25 @@ function IntervalsSection() {
                 <span className="text-2xl font-bold text-[#1C1917] font-mono">{iv.abbr}</span>
                 <span className="ml-2 text-sm text-[#78716C]">{iv.semitones} 半音</span>
               </div>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${qualityColors[iv.quality] ?? "bg-[#F0EDE8] text-[#57534E]"}`}>
-                {iv.quality}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${qualityColors[iv.quality] ?? "bg-[#F0EDE8] text-[#57534E]"}`}>
+                  {iv.quality}
+                </span>
+                {n1 && n2 && (
+                  <PlayButton
+                    onPlay={() => playInterval(n1, n2)}
+                    title={`听 ${iv.nameCN}：${iv.example}`}
+                  />
+                )}
+              </div>
             </div>
             <p className="font-semibold text-[#57534E] text-sm">{iv.nameCN}</p>
             <p className="text-xs text-[#78716C] mb-2">{iv.name}</p>
             <p className="font-mono text-xs text-[#F97316] mb-1">{iv.example}</p>
             <p className="text-xs text-[#78716C] italic">{iv.feel}</p>
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -608,9 +630,15 @@ function ProgressionsSection() {
             <div className="flex flex-wrap gap-3">
               {prog.degrees.map((deg, i) => (
                 <div key={i} className="text-center">
-                  <div className="w-20 h-16 rounded-xl bg-[#F97316] text-white flex flex-col items-center justify-center shadow-md">
+                  <div className="w-20 rounded-xl bg-[#F97316] text-white flex flex-col items-center justify-center shadow-md pt-2 pb-1">
                     <span className="text-xs opacity-70 font-mono">{deg}</span>
                     <span className="text-base font-bold font-mono">{prog.inC[i]}</span>
+                    <PlayButton
+                      size="sm"
+                      onPlay={() => playChordName(prog.inC[i])}
+                      title={`播放 ${prog.inC[i]}`}
+                      className="mt-1 mb-0.5 bg-white/20 text-white hover:bg-white/40"
+                    />
                   </div>
                   {i < prog.degrees.length - 1 && (
                     <span className="inline-block mt-1 text-[#B8B2AA] text-lg">→</span>
